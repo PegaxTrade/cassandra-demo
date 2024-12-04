@@ -1,5 +1,6 @@
 package org.example;
 
+import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.datastax.oss.driver.api.core.type.DataTypes;
@@ -12,6 +13,7 @@ import java.util.Random;
 
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
+import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createTable;
 
 public class Main {
@@ -43,20 +45,26 @@ public class Main {
 
             Main.log("insertRows");
 
-            final LocalDateTime timeStart = LocalDateTime.now();
+            final Duration duration = Main.stopwatch(() -> {
+                Main.insertRows(client, keyspace, table, rowCount);
+            });
 
-            Main.insertRows(client, keyspace, table, rowCount);
-
-            final LocalDateTime timeEnd = LocalDateTime.now();
-
-            final Duration duration = Duration.between(timeStart, timeEnd);
-
-            Main.log(String.format("Inserting %d items takes %s milliseconds", rowCount, duration.toMillis()));
+            Main.log(String.format("Inserting %d items takes %s ms", rowCount, duration.toMillis()));
         }
     }
 
-    private static void log(String message) {
+    private static void log(@NotNull String message) {
         System.out.format("[%s] %s%n", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), message);
+    }
+
+    private static Duration stopwatch(@NotNull Runnable callback) {
+        final long timeStart = System.currentTimeMillis();
+
+        callback.run();
+
+        final long timeEnd = System.currentTimeMillis();
+
+        return Duration.ofMillis(timeEnd - timeStart);
     }
 
     private static void tableCreate(
@@ -104,5 +112,17 @@ public class Main {
                 .build();
 
         client.execute(statement);
+    }
+
+    private static ResultSet select(
+            @NotNull CassandraClient client,
+            @NotNull String keyspace,
+            @NotNull String table
+    ) {
+        final SimpleStatement statement = selectFrom(keyspace, table)
+                .all()
+                .build();
+
+        return client.execute(statement);
     }
 }
