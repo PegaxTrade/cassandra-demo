@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Random;
+import java.util.stream.IntStream;
 
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
@@ -45,11 +46,26 @@ public class Main {
 
             Main.log("insertRows");
 
-            final Duration duration = Main.stopwatch(() -> {
-                Main.insertRows(client, keyspace, table, rowCount);
+            final Random random = new Random();
+            final int[] values = IntStream.generate(random::nextInt)
+                    .limit(rowCount)
+                    .toArray();
+
+            final Duration durationInsert = Main.stopwatch(() -> {
+                for (int value : values) {
+                    Main.insertRow(client, keyspace, table, value);
+                }
             });
 
-            Main.log(String.format("Inserting %d items takes %s ms", rowCount, duration.toMillis()));
+            Main.log(String.format("Inserting %d items takes %s ms", rowCount, durationInsert.toMillis()));
+
+            final Duration durationSelect = Main.stopwatch(() -> {
+                for (int value : values) {
+                    Main.selectRow(client, keyspace, table, value);
+                }
+            });
+
+            Main.log(String.format("Selecting %d items takes %s ms", rowCount, durationSelect.toMillis()));
         }
     }
 
@@ -83,19 +99,6 @@ public class Main {
         client.execute(statement);
     }
 
-    private static void insertRows(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table,
-            int rowCount
-    ) {
-        Random random = new Random();
-
-        for (int i = 0; i < rowCount; i++) {
-            Main.insertRow(client, keyspace, table, random.nextInt());
-        }
-    }
-
     private static void insertRow(
             @NotNull CassandraClient client,
             @NotNull String keyspace,
@@ -114,13 +117,17 @@ public class Main {
         client.execute(statement);
     }
 
-    private static ResultSet select(
+    private static ResultSet selectRow(
             @NotNull CassandraClient client,
             @NotNull String keyspace,
-            @NotNull String table
+            @NotNull String table,
+            int value
     ) {
+        final String id = Integer.toString(value);
+
         final SimpleStatement statement = selectFrom(keyspace, table)
                 .all()
+                .whereColumn("id").isEqualTo(literal(id))
                 .build();
 
         return client.execute(statement);
