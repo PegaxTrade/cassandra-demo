@@ -69,10 +69,10 @@ public class Main {
             });
 
             Main.log(String.format(
-                    "Inserting %d items using %d threads takes %s ms (average: %.2f per second)",
+                    "Inserting %d items using %d threads takes %.2f seconds (average: %.2f per second)",
                     itemCount,
                     threadCount,
-                    durationInsert.toMillis(),
+                    (double) durationInsert.toMillis() / 1000,
                     (double) itemCount / durationInsert.toMillis() * 1000
             ));
 
@@ -102,10 +102,10 @@ public class Main {
             });
 
             Main.log(String.format(
-                    "Selecting %d items randomly using %d threads takes %s ms (average: %.2f per second)",
+                    "Selecting %d items randomly using %d threads takes %.2f seconds (average: %.2f per second)",
                     itemCount,
                     threadCount,
-                    durationSelect.toMillis(),
+                    (double) durationSelect.toMillis() / 1000,
                     (double) itemCount / durationSelect.toMillis() * 1000
             ));
         }
