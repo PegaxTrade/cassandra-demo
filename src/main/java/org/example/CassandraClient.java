@@ -59,14 +59,4 @@ public class CassandraClient implements AutoCloseable {
 
         this.execute(statement);
     }
-
-    public int count(String keyspace, String table) {
-        final SimpleStatement statement = selectFrom(keyspace, table)
-                .countAll()
-                .build();
-
-        final Row row = this.execute(statement).one();
-
-        return (row == null) ? 0 : row.getInt("count");
-    }
 }

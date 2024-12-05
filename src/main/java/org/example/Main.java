@@ -5,6 +5,7 @@ import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 import com.datastax.oss.driver.api.core.metadata.schema.ClusteringOrder;
 import com.datastax.oss.driver.api.core.type.DataTypes;
+import com.datastax.oss.driver.shaded.guava.common.collect.ImmutableMap;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -17,6 +18,7 @@ import java.util.stream.IntStream;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.insertInto;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.literal;
 import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
+import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createIndex;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createTable;
 
 public class Main {
@@ -31,8 +33,8 @@ public class Main {
         final String keyspace = "demo";
         final int replicationFactor = 3;
         final String table = "lorem";
-        final int itemCount = 10000;
-        final int threadCount = 10;
+        final int itemCount = 50000;
+        final int threadCount = 100;
 
         try (final CassandraClient client = new CassandraClient(datacenter, ips, port)) {
             Main.log("createKeyspaceIfNotExists");
@@ -43,11 +45,15 @@ public class Main {
 
             Main.tableCreate(client, keyspace, table);
 
+            Main.log("indexCreate");
+
+            Main.indexCreate(client, keyspace, table);
+
             Main.log(String.format("Number of processors: %d", Runtime.getRuntime().availableProcessors()));
 
-            Main.log(String.format("Inserting %d items using %d threads", itemCount, threadCount));
-
             final List<List<Integer>> batches = Main.createBatches(itemCount, threadCount);
+
+            Main.log(String.format("Inserting %d items using %d threads", itemCount, threadCount));
 
             final Duration durationInsert = Main.stopwatch(() -> {
                 final List<Thread> threads = batches.stream()
@@ -62,7 +68,15 @@ public class Main {
                 Main.runInThreads(threads);
             });
 
-            Main.log(String.format("Inserting %d items using %d threads takes %s ms", itemCount, threadCount, durationInsert.toMillis()));
+            Main.log(String.format(
+                    "Inserting %d items using %d threads takes %s ms (average: %.2f per second)",
+                    itemCount,
+                    threadCount,
+                    durationInsert.toMillis(),
+                    (double) itemCount / durationInsert.toMillis() * 1000
+            ));
+
+            Main.log(String.format("Selecting %d items randomly using %d threads", itemCount, threadCount));
 
             final Duration durationSelect = Main.stopwatch(() -> {
                 final List<Thread> threads = batches.stream()
@@ -87,7 +101,13 @@ public class Main {
                 Main.runInThreads(threads);
             });
 
-            Main.log(String.format("Selecting %d items randomly using %d threads takes %s ms", itemCount, threadCount, durationSelect.toMillis()));
+            Main.log(String.format(
+                    "Selecting %d items randomly using %d threads takes %s ms (average: %.2f per second)",
+                    itemCount,
+                    threadCount,
+                    durationSelect.toMillis(),
+                    (double) itemCount / durationSelect.toMillis() * 1000
+            ));
         }
     }
 
@@ -143,6 +163,22 @@ public class Main {
                 .withClusteringColumn("value", DataTypes.INT)
                 .withColumn("hex", DataTypes.TEXT)
                 .withClusteringOrder("value", ClusteringOrder.DESC)
+                .build();
+
+        client.execute(statement);
+    }
+
+    private static void indexCreate(
+            @NotNull CassandraClient client,
+            @NotNull String keyspace,
+            @NotNull String table
+    ) {
+        final SimpleStatement statement = createIndex()
+                .ifNotExists()
+                .usingSASI()
+                .onTable(keyspace, table)
+                .andColumn("hex")
+                .withSASIOptions(ImmutableMap.of("mode", "CONTAINS"))
                 .build();
 
         client.execute(statement);
