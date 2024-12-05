@@ -13,6 +13,9 @@ exit 0
 #   reports the status as "Normal" instead of "Joining").
 ./bin/cassandra
 
+# Stop incoming connections on this node.
+./bin/nodetool drain
+
 # Stop Cassandra daemon on this node.
 ./bin/nodetool stopdaemon
 

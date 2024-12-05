@@ -25,3 +25,6 @@ sed -i "s/listen_address: localhost/listen_address: $listen_address/g" apache-ca
 
 # Set rpc_address.
 sed -i "s/rpc_address: localhost/rpc_address: $rpc_address/g" apache-cassandra-5.0.2/conf/cassandra.yaml
+
+# Set sasi_index_enabled to true.
+sed -i "s/sasi_indexes_enabled: false/sasi_indexes_enabled: true/g" apache-cassandra-5.0.2/conf/cassandra.yaml
