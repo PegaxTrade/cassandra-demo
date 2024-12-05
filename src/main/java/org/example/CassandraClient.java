@@ -4,6 +4,7 @@ import com.datastax.oss.driver.api.core.CqlSession;
 import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
+import com.datastax.oss.driver.api.core.cql.Row;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
 
 import java.net.InetSocketAddress;
@@ -11,6 +12,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createKeyspace;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.dropTable;
 
@@ -56,5 +58,15 @@ public class CassandraClient implements AutoCloseable {
                 .build();
 
         this.execute(statement);
+    }
+
+    public int count(String keyspace, String table) {
+        final SimpleStatement statement = selectFrom(keyspace, table)
+                .countAll()
+                .build();
+
+        final Row row = this.execute(statement).one();
+
+        return (row == null) ? 0 : row.getInt("count");
     }
 }
