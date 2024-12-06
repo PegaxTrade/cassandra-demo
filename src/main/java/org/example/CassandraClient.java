@@ -14,10 +14,14 @@ import java.util.List;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createKeyspace;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.dropTable;
 
-public class CassandraClient implements AutoCloseable {
+public final class CassandraClient implements AutoCloseable {
     private final CqlSession session;
 
-    public CassandraClient(String datacenter, String[] ips, int port) {
+    public CassandraClient(
+            final String datacenter,
+            final String[] ips,
+            final int port
+    ) {
         final DriverConfigLoader loader = DriverConfigLoader.programmaticBuilder()
                 .withDuration(DefaultDriverOption.REQUEST_TIMEOUT, Duration.ofSeconds(60))
                 .build();
@@ -37,11 +41,11 @@ public class CassandraClient implements AutoCloseable {
         this.session.close();
     }
 
-    public ResultSet execute(SimpleStatement statement) {
+    public ResultSet execute(final SimpleStatement statement) {
         return this.session.execute(statement);
     }
 
-    public void createKeyspaceIfNotExists(String keyspace, int replicationFactor) {
+    public void createKeyspaceIfNotExists(final String keyspace, final int replicationFactor) {
         final SimpleStatement statement = createKeyspace(keyspace)
                 .ifNotExists()
                 .withSimpleStrategy(replicationFactor)
@@ -50,7 +54,7 @@ public class CassandraClient implements AutoCloseable {
         this.execute(statement);
     }
 
-    public void dropTableIfExists(String keyspace, String table) {
+    public void dropTableIfExists(final String keyspace, final String table) {
         final SimpleStatement statement = dropTable(keyspace, table)
                 .ifExists()
                 .build();

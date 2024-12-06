@@ -23,8 +23,12 @@ import static com.datastax.oss.driver.api.querybuilder.QueryBuilder.selectFrom;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createIndex;
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createTable;
 
-public class Main {
-    public static void main(String[] args) {
+public final class Main {
+    private Main() {
+        // Utility classes should not have a public or default constructor.
+    }
+
+    public static void main(final String[] args) {
         final String datacenter = "datacenter1";
         final String[] ips = {
                 "192.168.0.163",
@@ -40,7 +44,7 @@ public class Main {
         final int writeThreadCount = 50;
         final int readThreadCount = 500;
 
-        try (final CassandraClient client = new CassandraClient(datacenter, ips, port)) {
+        try (CassandraClient client = new CassandraClient(datacenter, ips, port)) {
             Main.log("createKeyspaceIfNotExists");
 
             client.createKeyspaceIfNotExists(keyspace, replicationFactor);
@@ -75,15 +79,15 @@ public class Main {
         }
     }
 
-    private static void log(@NotNull String message) {
+    private static void log(@NotNull final String message) {
         System.out.format("[%s] %s%n", LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME), message);
     }
 
     private static void evaluateInsert(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table,
-            @NotNull List<List<Integer>> batches
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table,
+            @NotNull final List<List<Integer>> batches
     ) {
         final int threadCount = batches.size();
         final int itemCount = batches.stream().mapToInt(Collection::size).sum();
@@ -113,10 +117,10 @@ public class Main {
     }
 
     private static void evaluateSelect(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table,
-            @NotNull List<List<Integer>> batches
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table,
+            @NotNull final List<List<Integer>> batches
     ) {
         final int threadCount = batches.size();
         final int itemCount = batches.stream().mapToInt(Collection::size).sum();
@@ -155,7 +159,7 @@ public class Main {
         ));
     }
 
-    private static List<Integer> createValues(int count) {
+    private static List<Integer> createValues(final int count) {
         final Random random = new Random();
 
         return IntStream.generate(random::nextInt)
@@ -164,13 +168,13 @@ public class Main {
                 .toList();
     }
 
-    private static <T> @NotNull List<List<T>> partitionList(@NotNull List<T> list, int listCount) {
+    private static <T> @NotNull List<List<T>> partitionList(@NotNull final List<T> list, final int listCount) {
         final int size = (int) Math.ceil((double) list.size() / listCount);
 
         return ListUtils.partition(list, size);
     }
 
-    private static void runThreads(@NotNull List<Thread> threads) {
+    private static void runThreads(@NotNull final List<Thread> threads) {
         for (Thread thread : threads) {
             thread.start();
         }
@@ -184,7 +188,7 @@ public class Main {
         }
     }
 
-    private static Duration stopwatch(@NotNull Runnable callback) {
+    private static Duration stopwatch(@NotNull final Runnable callback) {
         final long timeStart = System.currentTimeMillis();
 
         callback.run();
@@ -195,9 +199,9 @@ public class Main {
     }
 
     private static void tableCreate(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table
     ) {
         final SimpleStatement statement = createTable(keyspace, table)
                 .ifNotExists()
@@ -211,9 +215,9 @@ public class Main {
     }
 
     private static void indexCreate(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table
     ) {
         final SimpleStatement statement = createIndex()
                 .ifNotExists()
@@ -227,10 +231,10 @@ public class Main {
     }
 
     private static void insertRow(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table,
-            int value
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table,
+            final int value
     ) {
         final String id = Integer.toString(value);
         final String hex = Integer.toHexString(value);
@@ -245,10 +249,10 @@ public class Main {
     }
 
     private static ResultSet selectRow(
-            @NotNull CassandraClient client,
-            @NotNull String keyspace,
-            @NotNull String table,
-            int value
+            @NotNull final CassandraClient client,
+            @NotNull final String keyspace,
+            @NotNull final String table,
+            final int value
     ) {
         final String id = Integer.toString(value);
 
