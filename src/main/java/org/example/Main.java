@@ -26,7 +26,7 @@ import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createTable
 public class Main {
     public static void main(String[] args) {
         final String datacenter = "datacenter1";
-        final String[] ips = new String[]{
+        final String[] ips = {
                 "192.168.0.163",
                 "192.168.0.24",
                 "192.168.0.214"
@@ -100,7 +100,7 @@ public class Main {
                         });
                     }).toList();
 
-            Main.runInThreads(threads);
+            Main.runThreads(threads);
         });
 
         Main.log(String.format(
@@ -143,7 +143,7 @@ public class Main {
                     })
                     .toList();
 
-            Main.runInThreads(threads);
+            Main.runThreads(threads);
         });
 
         Main.log(String.format(
@@ -170,7 +170,7 @@ public class Main {
         return ListUtils.partition(list, size);
     }
 
-    private static void runInThreads(@NotNull List<Thread> threads) {
+    private static void runThreads(@NotNull List<Thread> threads) {
         for (Thread thread : threads) {
             thread.start();
         }
