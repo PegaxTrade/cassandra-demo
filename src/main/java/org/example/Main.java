@@ -24,6 +24,8 @@ import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createIndex
 import static com.datastax.oss.driver.api.querybuilder.SchemaBuilder.createTable;
 
 public final class Main {
+    public static final int MILLISECONDS_PER_SECOND = 1000;
+
     private Main() {
         // Utility classes should not have a public or default constructor.
     }
@@ -111,8 +113,8 @@ public final class Main {
                 "Inserting %d items using %d threads takes %.2f seconds (average: %.2f per second)",
                 itemCount,
                 threadCount,
-                (double) durationInsert.toMillis() / 1000,
-                (double) itemCount / durationInsert.toMillis() * 1000
+                (double) durationInsert.toMillis() / MILLISECONDS_PER_SECOND,
+                (double) itemCount / durationInsert.toMillis() * MILLISECONDS_PER_SECOND
         ));
     }
 
@@ -154,8 +156,8 @@ public final class Main {
                 "Selecting %d items randomly using %d threads takes %.2f seconds (average: %.2f per second)",
                 itemCount,
                 threadCount,
-                (double) durationSelect.toMillis() / 1000,
-                (double) itemCount / durationSelect.toMillis() * 1000
+                (double) durationSelect.toMillis() / MILLISECONDS_PER_SECOND,
+                (double) itemCount / durationSelect.toMillis() * MILLISECONDS_PER_SECOND
         ));
     }
 
