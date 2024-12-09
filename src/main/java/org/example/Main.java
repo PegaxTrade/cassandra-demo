@@ -248,7 +248,7 @@ public final class Main {
         client.execute(statement);
     }
 
-    private static ResultSet selectRow(
+    private static @NotNull ResultSet selectRow(
             @NotNull final CassandraClient client,
             @NotNull final String keyspace,
             @NotNull final String table,

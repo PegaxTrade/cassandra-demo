@@ -5,6 +5,7 @@ import com.datastax.oss.driver.api.core.config.DefaultDriverOption;
 import com.datastax.oss.driver.api.core.config.DriverConfigLoader;
 import com.datastax.oss.driver.api.core.cql.ResultSet;
 import com.datastax.oss.driver.api.core.cql.SimpleStatement;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.InetSocketAddress;
 import java.time.Duration;
@@ -41,7 +42,7 @@ public final class CassandraClient implements AutoCloseable {
         this.session.close();
     }
 
-    public ResultSet execute(final SimpleStatement statement) {
+    public @NotNull ResultSet execute(final SimpleStatement statement) {
         return this.session.execute(statement);
     }
 
