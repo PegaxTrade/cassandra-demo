@@ -26,7 +26,6 @@ public final class Main {
   public static final int MILLISECONDS_PER_SECOND = 1000;
 
   private Main() {
-    // Utility classes should not have a public or default constructor.
   }
 
   public static void main(final String[] args) {
@@ -37,13 +36,14 @@ public final class Main {
         "192.168.0.214"
     };
     final int port = 9042;
-    final String keyspace = "demo";
+    final String keyspace = "foobar";
     final int replicationFactor = 3;
     final String table = "lorem";
 
-    final int itemCount = 50000;
+    final int itemCount = 1000;
     final int writeThreadCount = 50;
     final int readThreadCount = 500;
+    final int randomStringLength = 1024;
 
     try (CassandraClient client = new CassandraClient(datacenter, ips, port)) {
       Main.log("createKeyspaceIfNotExists");
@@ -70,7 +70,8 @@ public final class Main {
           client,
           keyspace,
           table,
-          writeBatches
+          writeBatches,
+          randomStringLength
       );
 
       Main.evaluateSelect(
@@ -92,7 +93,8 @@ public final class Main {
       @NotNull final CassandraClient client,
       @NotNull final String keyspace,
       @NotNull final String table,
-      @NotNull final List<List<Integer>> batches
+      @NotNull final List<List<Integer>> batches,
+      final int randomStringLength
   ) {
     final int threadCount = batches.size();
     final int itemCount = batches.stream().mapToInt(Collection::size).sum();
@@ -104,7 +106,7 @@ public final class Main {
           .map((batch) -> {
             return new Thread(() -> {
               for (int value : batch) {
-                Main.insertRow(client, keyspace, table, value);
+                Main.insertRow(client, keyspace, table, randomStringLength, value);
               }
             });
           }).toList();
@@ -216,6 +218,7 @@ public final class Main {
         .withPartitionKey("id", DataTypes.TEXT)
         .withClusteringColumn("value", DataTypes.INT)
         .withColumn("hex", DataTypes.TEXT)
+        .withColumn("random", DataTypes.TEXT)
         .withClusteringOrder("value", ClusteringOrder.DESC)
         .build();
 
@@ -242,15 +245,18 @@ public final class Main {
       @NotNull final CassandraClient client,
       @NotNull final String keyspace,
       @NotNull final String table,
+      final int randomStringLength,
       final int value
   ) {
     final String id = Integer.toString(value);
     final String hex = Integer.toHexString(value);
+    final String randomText = Generator.randomString(randomStringLength);
 
     final SimpleStatement statement = insertInto(keyspace, table)
         .value("id", literal(id))
         .value("value", literal(value))
         .value("hex", literal(hex))
+        .value("random", literal(randomText))
         .build();
 
     client.execute(statement);
