@@ -6,7 +6,7 @@ listen_address="$(hostname --all-ip-addresses)"
 rpc_address="$(hostname --all-ip-addresses)"
 
 # Download tarball.
-curl --remote-name https://dlcdn.apache.org/cassandra/5.0.2/apache-cassandra-5.0.2-bin.tar.gz
+curl --remote-name https://archive.apache.org/dist/cassandra/5.0.2/apache-cassandra-5.0.2-bin.tar.gz
 
 # Extract files from tarball.
 tar -xvf apache-cassandra-5.0.2-bin.tar.gz
