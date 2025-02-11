@@ -8,7 +8,9 @@ exit 0
 # ---
 
 # Start Cassandra daemon on this node.
-# - This command exit immediately even though the stdout keeps printing logs.
+# - This command exit immediately even though the stdout keeps printing logs. Wait until the logs show "Node xxx state
+#   jump to NORMAL" where xxx is the node address.
+# - Seed nodes should be started before non-seed nodes.
 # - A Cassandra node should be started after the previous node has joined the cluster successfully (i.e. nodetool
 #   reports the status as "Normal" instead of "Joining").
 ./bin/cassandra
